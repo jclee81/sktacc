@@ -46,7 +46,8 @@ class CmdHandler(SingletonMixin):
         worker = config["ml_worker"]
         worker_count = str(len(worker))
         # code_name = 'mnist'
-        code_name = 'code1'
+        code_name = 'mnist_single'
+        # code_name = 'mnist_wo_mod_run'
         train_id = 't%s' % util.hhmmss()
 
         Pony().log({'key': 'REGISTER_TRAIN',

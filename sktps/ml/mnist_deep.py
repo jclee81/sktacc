@@ -71,8 +71,7 @@ def deepnn(x):
     b_fc2 = bias_variable([10])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
-    var = W_conv1
-    return y_conv, keep_prob, var
+    return y_conv, keep_prob
 
 
 def conv2d(x, W):
@@ -111,7 +110,7 @@ def run(message):
     x = tf.placeholder(tf.float32, [None, 784])
     y_ = tf.placeholder(tf.float32, [None, 10])
 
-    y_conv, keep_prob, var = deepnn(x)
+    y_conv, keep_prob = deepnn(x)
 
     cross_entropy = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
