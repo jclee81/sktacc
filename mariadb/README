@@ -1,0 +1,13 @@
+# TIM-AI means T-Infra Manager for AI
+
+# update /etc/my.cnf (optional) 
+# - character-set-server=utf8
+# - collation-server=utf8_general_ci
+# - default-storage-engine=MyISAM or InnoDB
+# sudo service mariadb start or sudo systemctl start mariadb.service
+# sudo systemctl enable mariadb.service
+# mysqladmin password
+# execute 1_change_root_pw.sh
+# execute 2_db_init.sh
+# execute 3_load_data.sh
+# execute 4_check_db_load.sh

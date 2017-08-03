@@ -1,0 +1,6 @@
+container_1|1,2|{"ports":{"TIP_SSH_PORT":"20000","TIP_JUPYTER_PORT":"30000","TIP_ZEPPELIN_PORT":"40000","TIP_TENSORBOARD_PORT":"50000"}}|1110111|docker_image_1|host_1
+container_2|3,4|{"ports":{"TIP_SSH_PORT":"20001","TIP_JUPYTER_PORT":"30001","TIP_TENSORBOARD_PORT":"50001"}}|1110112|docker_image_2|host_2
+container_3|1,2,3,4|{"ports":{"TIP_SSH_PORT":"20002"}}|1110113|docker_image_3|host_3
+container_4|3,4|{"ports":{"TIP_SSH_PORT":"20000","TIP_JUPYTER_PORT":"30000","TIP_ZEPPELIN_PORT":"40000","TIP_TENSORBOARD_PORT":"50000"}}|1110111|docker_image_1|host_1
+container_5||{"ports":{"TIP_SSH_PORT":"20000","TIP_JUPYTER_PORT":"30000","TIP_ZEPPELIN_PORT":"40000","TIP_TENSORBOARD_PORT":"50000"},"extra_vols":{"AIC":"rw"}}|1110111|docker_image_4|host_1
+container_6||{"ports":{"TIP_SSH_PORT":"20000","TIP_JUPYTER_PORT":"30000","TIP_ZEPPELIN_PORT":"40000","TIP_TENSORBOARD_PORT":"50000"},"extra_vols":{"AIC":"rw"}}|1110114|docker_image_4|host_1

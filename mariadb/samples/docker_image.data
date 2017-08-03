@@ -1,0 +1,4 @@
+docker_image_1|tensorflow_1.0|https://github.com/yogi/jeogi1|./start.sh|this is tensorflow image
+docker_image_2|caffe_2.0|https://github.com/yogi/jeogi2|./start.sh|this is caffe image
+docker_image_3|torch_3.0|https://github.com/yogi/jeogi3|./start.sh|this is torch image
+docker_image_4|torch_3.0|https://github.com/yogi/jeogi4||this is torch image

@@ -1,0 +1,11 @@
+skt-ogs-execd:170719|OGS|172.27.107.98:5000/skt-ogs-execd:170719 ||OGS
+skt-ogs-qmaster:170719|OGS|172.27.107.98:5000/skt-ogs-qmaster:170719 ||OGS
+skt-ogs-base:170719|OGS|172.27.107.98:5000/skt-ogs-base:170719 ||OGS
+skt-vtl-dev:170724|TensorFlow 1.0.1;Caffe 1.0.0;DIGITS 5.0.0|172.27.107.98:5000/skt-vtl-dev:170724 |/start.sh|Ubuntu 14.04.3 LTS; nvidia-driver 375.26; CUDA 8.0; cuDNN 5.1; Python2 2.7.6; Python3 3.4.3; TensorFlow 1.0.1; Caffe 1.0.0; DIGITS 5.0.0
+skt-vtl-dev:170320|TensorFlow 1.0.1;Caffe 1.0.0;DIGITS 5.0.0|172.27.107.98:5000/skt-vtl-dev:170320 |/start.sh|Ubuntu 14.04.3 LTS; nvidia-driver 375.26; CUDA 8.0; cuDNN 5.1; Python2 2.7.6; Python3 3.4.3; TensorFlow 1.0.1; Caffe 1.0.0; DIGITS 5.0.0
+skt-tensorflow:1.0|TensorFlow 1.0.1|172.27.107.98:5000/skt-tensorflow:1.0|/start.sh|Ubuntu 14.04.3 LTS; nvidia-driver 375.26; CUDA 8.0; cuDNN 5.1; Python2 2.7.6; Python3 3.4.3; TensorFlow 1.0.1
+skt-hugman-backup:170627|TensorFlow 1.0.1|172.27.107.98:5000/skt-hugman-backup:170627|/start.sh|TensorFlow 1.0.1; Python 3.6; MySQL 5.7; Nexus; Tomcat 8; Git; Java8
+skt-stl-zeppelin:170724|zeppelin|172.27.107.98:5000/skt-stl-zeppelin:170724|/start.sh|Ubuntu 14.04.3 LTS; No GPU
+skt-tensorflow:170724|TensorFlow 1.0.1|172.27.107.98:5000/skt-tensorflow:170724|/start.sh|TensorFlow 1.0.1; Hadoop configuration
+skt-lut-tensorflow:170725|TensorFlow 1.2.1|172.27.107.98:5000/skt-lut-tensorflow:170725|/start.sh|TensorFlow 1.2.1; Python 3.6
+skt-stl-tensorflow:170731|TensorFlow 1.0.1|172.27.107.98:5000/skt-stl-tensorflow:170731|/start.sh|TensorFlow 1.0.1; Hadoop; Melon
