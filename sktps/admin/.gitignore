@@ -1,0 +1,7 @@
+# express
+node_modules
+config/config.js
+
+# angular
+/public/bower_components
+/public/config/config.js

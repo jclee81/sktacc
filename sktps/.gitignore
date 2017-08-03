@@ -1,0 +1,12 @@
+.env
+*.swp
+*.pyc
+config/config.json
+.idea
+log.txt
+sample
+redis-4.0.*
+dump.rdb
+*un~
+.DS_Store
+mesos-1.3.0
