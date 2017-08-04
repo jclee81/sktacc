@@ -57,6 +57,12 @@ def hhmmss():
     return now_str
 
 
+def yymmdd():
+    now = datetime.now()
+    now_str = now.strftime('%y-%m-%d')
+    return now_str
+
+
 def restore_graph(name, s):
     graph_def = graph_pb2.GraphDef()
     graph_def.ParseFromString(s)

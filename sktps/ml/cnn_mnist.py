@@ -102,7 +102,7 @@ def run(message):
     train_id = message['train_id']
     worker_count = message['worker_count']
 
-    log.warn('Run mnist_deep (%s, %s)' % (train_id, worker_id))
+    log.warn('Run cnn_mnist(%s, %s)' % (train_id, worker_id))
 
     ps_conn = ParameterServer(train_id, worker_id, worker_count)
 

@@ -5,11 +5,9 @@ from flask import Flask
 from flask_socketio import SocketIO
 
 import ml.code1 as code1
-import ml.mnist_mod_run
-import ml.mnist_wo_mod_run
-import ml.mnist_single
+import ml.mnist_with_ps
+import ml.mnist_no_ps
 
-import ml.mnist_deep as mnist_deep
 from util.log import log
 from util.pony import Pony
 from util.util import get_worker_id
@@ -64,12 +62,10 @@ def start_train(message):
 
     if code_name == 'code1':
         code1.run(message)
-    elif code_name == 'mnist_mod_run':
-        ml.mnist_mod_run.run(message)
-    elif code_name == 'mnist_wo_mod_run':
-        ml.mnist_wo_mod_run.run(message)
-    elif code_name == 'mnist_single':
-        ml.mnist_single.run(message)
+    elif code_name == 'mnist_with_ps':
+        ml.mnist_with_ps.run(message)
+    elif code_name == 'mnist_no_ps':
+        ml.mnist_no_ps.run(message)
     else:
         log.error('Invalid code name: %s' % code_name)
 
