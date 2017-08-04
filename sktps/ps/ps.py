@@ -44,8 +44,8 @@ class ParameterServer(object):
         }
         self.measure_helper = MeasureHelper()
 
-    def change_var_as_average(
-        self, sess, iteration_id, variables, time_out_sec=1):
+    def change_var_as_average(self, sess, iteration_id, variables,
+                              time_out_sec=1):
 
         self.iteration_id = iteration_id
         train_id = self.train_id
@@ -89,8 +89,8 @@ class ParameterServer(object):
         measurement['key'] = 'MEASUREMENT'
         Pony().log(measurement)
 
-    def _set_variable_and_publish(
-        self, sess, iteration_id, variables, transaction_id, group_id):
+    def _set_variable_and_publish(self, sess, iteration_id, variables,
+                                  transaction_id, group_id):
         # v = variable
         # s = v.to_proto().SerializeToString()
         # h = ":".join("{:02x}".format(ord(c)) for c in s)
