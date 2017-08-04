@@ -1,3 +1,6 @@
+
+# redis cluster sharding rule
+# slot = crc16(key) mod 16384
 import crc16
 
 
@@ -31,13 +34,16 @@ heads1 = []
 heads2 = []
 
 for i in range(0, 999):
-    tails.append(which_node(crc16.crc16xmodem(('t123-0000001-%3d' % i)) % 16384))
+    tails.append(
+        which_node(crc16.crc16xmodem(('t123-0000001-%3d' % i)) % 16384))
     
 for i in range(0, 999):
-    heads1.append(which_node(crc16.crc16xmodem(('%3d-t123-0000001' % i)) % 16384))
+    heads1.append(
+        which_node(crc16.crc16xmodem(('%3d-t123-0000001' % i)) % 16384))
     
 for i in range(0, 999):
-    heads2.append(which_node(crc16.crc16xmodem(('%d-t123-0000001' % i)) % 16384))
+    heads2.append(
+        which_node(crc16.crc16xmodem(('%d-t123-0000001' % i)) % 16384))
 
 print(balance(tails))
 print(balance(heads1))
