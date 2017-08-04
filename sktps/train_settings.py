@@ -10,8 +10,8 @@ train_actions = {
     'cnn_mnist': ml.cnn_mnist
 }
 
-# train_code_names = ['mnist_no_ps', 'mnist_with_ps']
+train_code_names = ['mnist_with_ps']
 # train_code_names = ['cnn_mnist']
 # train_code_names = ['code1', 'cnn_mnist', 'mnist_no_ps', 'mnist_with_ps']
-train_code_names = ['code1']
+# train_code_names = ['code1']
 
