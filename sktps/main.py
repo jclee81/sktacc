@@ -9,6 +9,7 @@ import redis
 
 import ps.sample_freeze_restore as sfr
 import util
+from train_settings import train_code_names
 from util.config import config
 from util.log import log
 from util.pony import Pony
@@ -45,10 +46,9 @@ class CmdHandler(SingletonMixin):
     def trainer(self):
         worker = config["ml_worker"]
         worker_count = str(len(worker))
-        code_names = ['mnist_no_ps', 'mnist_with_ps']
         train_id = 't%s' % util.hhmmss()
 
-        for code_name in code_names:
+        for code_name in train_code_names:
             Pony().log({'key': 'REGISTER_TRAIN',
                         'code_name': code_name,
                         'worker_num': worker_count,

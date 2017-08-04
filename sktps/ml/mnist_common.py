@@ -38,7 +38,7 @@ def run(mnist_input):
     mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
     mi = mnist_input
     code_name = mi.code_name
-    log.warn('Start mnist: %s' % code_name)
+    log.info('Start mnist: %s' % code_name)
     worker_id = mi.worker_id
     train_id = mi.train_id
     worker_count = mi.worker_count

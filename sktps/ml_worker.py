@@ -4,13 +4,10 @@ import threading
 from flask import Flask
 from flask_socketio import SocketIO
 
-import ml.code1 as code1
-import ml.mnist_with_ps
-import ml.mnist_no_ps
-
 from util.log import log
 from util.pony import Pony
 from util.util import get_worker_id
+from train_settings import train_actions
 
 parser = argparse.ArgumentParser(description="fake ml node")
 parser.add_argument('host')
@@ -60,14 +57,7 @@ def start_train(message):
         'train_id': train_id,
     })
 
-    if code_name == 'code1':
-        code1.run(message)
-    elif code_name == 'mnist_with_ps':
-        ml.mnist_with_ps.run(message)
-    elif code_name == 'mnist_no_ps':
-        ml.mnist_no_ps.run(message)
-    else:
-        log.error('Invalid code name: %s' % code_name)
+    train_actions[code_name].run(message)
 
     Pony().log({
         'key': 'FINISH_ML_TRAIN',
