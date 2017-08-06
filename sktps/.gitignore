@@ -10,4 +10,7 @@ dump.rdb
 *un~
 .DS_Store
 mesos-1.3.0
+marathon-1.4.5
 pip_downloads
+*.tar.gz
+*.tgz
