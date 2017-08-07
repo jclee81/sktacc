@@ -1,13 +1,13 @@
 from __future__ import print_function
 
 import json
-import time
 
 import redis
 from rediscluster import StrictRedisCluster
 from tensorflow.python.framework import graph_util
 
 import util
+from aging import DefaultAgingPolicy
 from measure import Measure, MeasureHelper
 from util.config import config
 from util.log import log
@@ -17,10 +17,14 @@ channel = 'ps'  # change it later
 
 
 class ParameterServer(object):
-    def __init__(self, train_id, worker_id, worker_count=-1):
+    def __init__(self, sess, train_id, worker_id, iteration_id, variables,
+                 aging=None, worker_count=-1):
+        log.debug('ParameterServer v0.0.2')
+        self.sess = sess
         self.train_id = train_id
         self.worker_id = worker_id
-        self.iteration_id = -1
+        self.iteration_id = int(iteration_id)
+        self.variables = variables
 
         info = config["pubsub"]
         self.host = info[0]
@@ -39,63 +43,64 @@ class ParameterServer(object):
             startup_nodes=startup_nodes, decode_responses=False)
 
         self.future_list = []
-        self.infra_info = {
-            'worker_count': worker_count
-        }
+        self.infra_info = {'worker_count': worker_count}
         self.measure_helper = MeasureHelper()
 
-    def change_var_as_average(self, sess, iteration_id, variables,
-                              time_out_sec=1):
+        if aging is None:
+            self.aging = DefaultAgingPolicy()
+        else:
+            self.aging = aging
+        self.aging.init(self)
+        group_id = util.get_group_id(train_id, iteration_id)
+        self.measurement = Measure().create_measurement(
+            'ps', train_id, group_id, worker_id)
+        self.measure_helper.num_00_init(self.measurement)
 
-        self.iteration_id = iteration_id
-        train_id = self.train_id
-        worker_id = self.worker_id
+    def load_variables(self):
+        self.measure_helper.num_01_before_load_variables(self.measurement)
+        try:
+            sess = self.sess
+            first, success, group_id, raw = self.aging.get_data(self)
+            if first:
+                return True
+            if not success:
+                return False
+            util.restore_graph(group_id, raw)
+            ####
+            g = sess.graph
+            for v in self.variables:
+                src_key = '%s/average_%s:0' % (group_id, v.op.name)
+                src = g.get_tensor_by_name(src_key)
+                sess.run(v.assign(src))
+            return True
+        finally:
+            self.measure_helper.num_01_after_load_variables(self.measurement)
 
-        group_id = self.get_group_id(train_id, iteration_id)
+    def save_variables(self):
+        self.measure_helper.num_02_before_save_variables(self.measurement)
+        data_size = -1
+        try:
+            sess = self.sess
+            group_id = util.get_group_id(self.train_id, self.iteration_id)
+            transaction_id = util.get_transaction_id(
+                self.train_id, self.worker_id, self.iteration_id)
+            data_size = self._set_variable_and_publish(
+                sess,
+                self.iteration_id,
+                transaction_id,
+                group_id)
+        finally:
+            self.measure_helper.num_02_after_save_variables(
+                self.measurement, data_size)
+            self.pony_measurement(self.measurement)
 
-        m = Measure().create_measurement('ps', train_id, group_id, worker_id)
-
-        self.measure_helper.num_00_start_call_func(m)
-
-        transaction_id = self.get_transaction_id(
-            train_id, worker_id, iteration_id)
-
-        # 1. set variable to redis cluster
-        data_size = self._set_variable_and_publish(
-            sess, iteration_id, variables, transaction_id, group_id)
-
-        self.measure_helper.num_01_after_pub_on_worker(m, data_size)
-
-        # 2. wait my group_id average
-        success = self._wait_average(sess, group_id, variables, time_out_sec, m)
-
-        self.measure_helper.num_09_finish_call_func(m, success)
-        self.pony_measurement(m)
-
-    def _log(self, msg):
-        log.debug('[%s:%s] %s' % (self.worker_id, self.iteration_id, msg))
-
-    def pony(self, msg):
-        group_id = self.get_group_id(self.train_id, self.iteration_id)
-        worker_id = self.worker_id
-        Pony().log({
-            'key': 'UPDATE_PS_DETAIL',
-            'group_id': group_id,
-            'worker_id': worker_id,
-            'msg': msg,
-        })
-
-    def pony_measurement(self, measurement):
-        measurement['key'] = 'MEASUREMENT'
-        Pony().log(measurement)
-
-    def _set_variable_and_publish(self, sess, iteration_id, variables,
-                                  transaction_id, group_id):
+    def _set_variable_and_publish(self, sess, iteration_id, transaction_id,
+                                  group_id):
         # v = variable
         # s = v.to_proto().SerializeToString()
         # h = ":".join("{:02x}".format(ord(c)) for c in s)
 
-        variable_names = [var.op.name for var in variables]
+        variable_names = [var.op.name for var in self.variables]
 
         g = sess.graph
         g_def = g.as_graph_def()
@@ -116,79 +121,19 @@ class ParameterServer(object):
             'worker_count': worker_count
         })
         self.r.publish(channel=channel, message=message)
-        self._log('pub %s' % iteration_id)
+        log.debug('pub %s' % iteration_id)
         return len(s)
 
-    def get_transaction_id(self, train_id, worker_id, iteration_id):
-        return '%s-%s-%09d' % (worker_id, train_id, iteration_id)
+    def pony(self, msg):
+        group_id = util.get_group_id(self.train_id, self.iteration_id)
+        worker_id = self.worker_id
+        Pony().log({
+            'key': 'UPDATE_PS_DETAIL',
+            'group_id': group_id,
+            'worker_id': worker_id,
+            'msg': msg,
+        })
 
-    def get_group_id(self, train_id, iteration_id):
-        return '%s-%09d' % (train_id, int(iteration_id))
-
-    def set_infra_info(self, infra_info):
-        self.infra_info = infra_info
-
-    def _check_message(self, message, group_id):
-        key = message['key']
-        if key != 'average':
-            return 'prev'
-        if 'train_id' not in message:
-            return 'prev'
-        if message['train_id'] != self.train_id:
-            return 'prev'
-        if group_id == message['group_id']:
-            return 'cur'
-        my_iteration_id = self.iteration_id
-        if int(message['iteration_id']) > int(my_iteration_id):
-            return 'next'
-        return 'prev'
-
-    def _restore_variable_from_rc(self, sess, group_id, variables, m):
-        self.measure_helper.num_06_after_sub_on_worker(m)
-
-        g = sess.graph
-        raw = self.rc.get(group_id)
-
-        self.measure_helper.num_07_after_get_on_worker(m)
-
-        ####
-        util.restore_graph(group_id, raw)
-        ####
-
-        for v in variables:
-            src_key = '%s/average_%s:0' % (group_id, v.op.name)
-            src = g.get_tensor_by_name(src_key)
-            sess.run(v.assign(src))
-
-        self.measure_helper.num_08_after_assign_on_worker(m)
-
-    def _wait_average(self, sess, group_id, variables, time_out_sec, m):
-        p = self.p
-        start_time = time.time()
-
-        for message in self.future_list:
-            prev_cur_next = self._check_message(message, group_id)
-            if prev_cur_next == 'cur':
-                self._restore_variable_from_rc(sess, group_id, variables, m)
-                return True
-
-        while True:
-            raw_message = p.get_message()
-            message = util.extract_json(raw_message)
-            if not message:
-                time.sleep(0.001)
-            else:
-                prev_cur_next = self._check_message(message, group_id)
-                if prev_cur_next == 'next':
-                    self._log('future append %s' % message['iteration_id'])
-                    self.future_list.append(message)
-                elif prev_cur_next == 'cur':
-                    self._restore_variable_from_rc(sess, group_id, variables, m)
-                    return True
-                else:
-                    time.sleep(0.001)
-
-            diff = time.time() - start_time
-            if diff > time_out_sec:
-                log.error('Timeout!')
-                return False
+    def pony_measurement(self, measurement):
+        measurement['key'] = 'MEASUREMENT'
+        Pony().log(measurement)

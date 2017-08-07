@@ -38,7 +38,6 @@ class ParameterServerController(object):
         self.measure_helper = MeasureHelper()
 
     def _handle(self, message):
-        log.debug('_handle')
         if 'key' not in message:
             return
         if message['key'] != 'set_variable':
@@ -64,6 +63,8 @@ class ParameterServerController(object):
         tid = message['transaction_id']
         if tid not in keys:
             keys.append(tid)
+        else:
+            log.warn('Same transaction id: %s' % tid)
         item['progress'] = len(keys)
         Pony().log({
             'key': 'UPDATE_PS',
@@ -76,7 +77,6 @@ class ParameterServerController(object):
                 'controller', train_id, group_id)
             self.measure_helper.num_03_after_get_on_controller(m, len(keys))
             self._calculate_average_and_put(group_id, item)
-            self.measure_helper.num_04_after_cal_avg_on_controller(m)
 
             message = json.dumps({
                 'key': 'average',
@@ -87,6 +87,8 @@ class ParameterServerController(object):
             self.measure_helper.num_05_after_pub_on_controller(m)
             m['key'] = 'MEASUREMENT'
             Pony().log(m)
+        else:
+            log.debug('Wait more data')
 
     def _calculate_average_and_put(self, group_id, item):
         keys = item['keys']

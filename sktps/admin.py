@@ -11,6 +11,7 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 
 import util
+from train import TrainCenter
 from util.config import config
 from util.log import log
 from util.singleton import SingletonMixin
@@ -18,6 +19,8 @@ from util.singleton import SingletonMixin
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+
+LOOP_INTERVAL_SEC = 2
 
 
 class LogCollector(SingletonMixin):
@@ -45,27 +48,29 @@ class LogCollector(SingletonMixin):
             return
 
         key = data['key']
-        if key == 'START_ML_WORKER':
-            worker_id = data['worker_id']
-            Center().connect_ml_worker(worker_id)
-        elif key == 'START_ML_TRAIN':
-            worker_id = data['worker_id']
-            code_name = data['code_name']
-            train_id = data['train_id']
-            Center().start_train(worker_id, code_name, train_id)
-        elif key == 'FINISH_ML_TRAIN':
-            worker_id = data['worker_id']
-            code_name = data['code_name']
-            train_id = data['train_id']
-            Center().finish_train(worker_id, code_name, train_id)
-        elif key == 'REGISTER_TRAIN':
-            Center().register_train(data)
-        elif key == 'UPDATE_PS':
+        # if key == 'START_ML_WORKER':
+        #     worker_id = data['worker_id']
+        #     Center().connect_ml_worker(worker_id)
+        # elif key == 'START_ML_TRAIN':
+        #     worker_id = data['worker_id']
+        #     code_name = data['code_name']
+        #     train_id = data['train_id']
+        #     Center().start_train(worker_id, code_name, train_id)
+        # elif key == 'FINISH_ML_TRAIN':
+        #     worker_id = data['worker_id']
+        #     code_name = data['code_name']
+        #     train_id = data['train_id']
+        #     Center().finish_train(worker_id, code_name, train_id)
+        # elif key == 'REGISTER_TRAIN':
+        #     Center().register_train(data)
+        if key == 'UPDATE_PS':
             Center().update_ps(data)
         elif key == 'UPDATE_PS_DETAIL':
             Center().update_ps_detail(data)
         elif key == 'MEASUREMENT':
             Center().update_measurement(data)
+        elif key == 'TRAIN_NOW':
+            TrainCenter().train_now(data)
         elif key == 'set_variable':
             pass
         elif key == 'average':
@@ -74,13 +79,20 @@ class LogCollector(SingletonMixin):
             log.error('IMPME: %s' % key)
 
 
-def start_collect_log():
-    log.warn('START PROCESS: admin')
+def start_sub_log_and_command():
+    log.warn('START THREAD: admin / subscribe log and command')
     while True:
         LogCollector().collect()
         # time.sleep(0.001)
         Center().loop_count += 1
-        time.sleep(3)
+        time.sleep(LOOP_INTERVAL_SEC)
+
+
+def start_train_center():
+    log.warn('START THREAD: admin / train-center')
+    while True:
+        TrainCenter().update()
+        time.sleep(LOOP_INTERVAL_SEC)
 
 
 class MeasureContainer(object):
@@ -93,23 +105,29 @@ class MeasureContainer(object):
         self.df = pd.DataFrame(
             columns=[
                 'train_id', 'group_id', 'worker_id', 'worker_count',
-                'total_rtt', 'controller_rtt', 'data_size', 'success'
+                'load_rtt', 'save_rtt', 'controller_rtt',
+                'data_size', 'success'
             ],
             dtype='float')
 
     def _to_list(self, data):
-        finish_all = int(data['num_09_finish_call_func'])
-        start = int(data['num_00_start_call_func'])
-        total_rtt = finish_all - start
+        load_end = int(data['num_01_after_load_variables'])
+        load_start = int(data['num_01_before_load_variables'])
+        load_rtt = load_end - load_start
+
+        save_end = int(data['num_02_after_save_variables'])
+        save_start = int(data['num_02_before_save_variables'])
+        save_rtt = save_end - save_start
         controller_rtt = int(data['num_05_after_pub_on_controller']) - int(
             data['num_03_after_get_on_controller'])
-        success = int(data['success'])
+        success = 1
         return [
             data['train_id'],
             data['group_id'],
             data['worker_id'],
             data['worker_count'],
-            total_rtt,
+            load_rtt,
+            save_rtt,
             controller_rtt,
             data['data_size'],
             success,
@@ -180,30 +198,25 @@ class Center(SingletonMixin):
         super(Center, self).__init__()
         self.loop_count = 0
         self.ml_worker = {}
-        self.train = {}
         self.ps = {}
         self.ps_detail = []
         self.measure_container = MeasureContainer()
 
-    def register_train(self, data):
-        train_id = data['train_id']
-        self.train[train_id] = data
+    # def start_train(self, worker_id, code_name, train_id):
+    #     msg = 'Start (%s:%s)' % (code_name, train_id)
+    #     w = self.ml_worker[worker_id]
+    #     w['description'] = msg
 
-    def start_train(self, worker_id, code_name, train_id):
-        msg = 'Start (%s:%s)' % (code_name, train_id)
-        w = self.ml_worker[worker_id]
-        w['description'] = msg
+    # def finish_train(self, worker_id, code_name, train_id):
+    #     msg = 'Finish (%s:%s)' % (code_name, train_id)
+    #     w = self.ml_worker[worker_id]
+    #     w['description'] = msg
 
-    def finish_train(self, worker_id, code_name, train_id):
-        msg = 'Finish (%s:%s)' % (code_name, train_id)
-        w = self.ml_worker[worker_id]
-        w['description'] = msg
-
-    def connect_ml_worker(self, worker_id):
-        self.ml_worker[worker_id] = {
-            'worker_id': worker_id,
-            'description': 'connected',
-        }
+    # def connect_ml_worker(self, worker_id):
+    #     self.ml_worker[worker_id] = {
+    #         'worker_id': worker_id,
+    #         'description': 'connected',
+    #     }
 
     def update_ps_detail(self, data):
         group_id = data['group_id']
@@ -228,7 +241,7 @@ class Center(SingletonMixin):
     def get_data(self):
         return {
             'loop_count': self.loop_count,
-            'train': [v for k, v in self.train.iteritems()],
+            'train': TrainCenter().get_info(),
             'worker': [v for k, v in self.ml_worker.iteritems()],
             'ps': [v for k, v in self.ps.iteritems()],
             'ps_detail': self.ps_detail,
@@ -247,10 +260,17 @@ api.add_resource(DefaultRoute, '/')
 
 
 def run():
-    t = threading.Thread(target=start_collect_log)
-    t.daemon = True
-    t.start()
-    app.run(debug=False)
+    t1 = threading.Thread(target=start_sub_log_and_command)
+    t1.daemon = True
+    t1.start()
+
+    t2 = threading.Thread(target=start_train_center)
+    t2.daemon = True
+    t2.start()
+
+    admin_config = config["admin"]
+    app.run(port=int(admin_config['port']), debug=False)
+    # app.run(port=int(admin_config['port']), debug=True)
 
 
 if __name__ == '__main__':
