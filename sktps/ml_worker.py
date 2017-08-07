@@ -1,84 +1,16 @@
-import argparse
-import threading
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from flask import Flask
-from flask_socketio import SocketIO
+import redis
+from rq import Connection, Queue, Worker
 
-from util.log import log
-from util.pony import Pony
-from util.util import get_worker_id
-from train_settings import train_actions
-
-parser = argparse.ArgumentParser(description="fake ml node")
-parser.add_argument('host')
-parser.add_argument('port')
-args = parser.parse_args()
-host = args.host
-port = int(args.port)
-wid = get_worker_id(host, port)
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
-
-
-@app.route('/')
-def index():
-    # Pony().log({ 'key': 'connect', 'type': 'worker', 'value': wid, })
-    return 'Hello this is fake ml node %d' % port
-
-
-@socketio.on('connect')
-def on_connect():
-    log.debug('on_connect')
-
-
-@socketio.on('disconnect')
-def on_disconnect():
-    log.debug('on_disconnect')
-
-
-@socketio.on('ping')
-def ping(message):
-    log.info('on ping: %s', message)
-    # emit('my_event', {'data': 'pong'})
-    return 'pong'
-
-
-#######################
-def start_train(message):
-    code_name = message['code_name']
-    train_id = message['train_id']
-
-    Pony().log({
-        'key': 'START_ML_TRAIN',
-        'code_name': code_name,
-        'worker_id': wid,
-        'train_id': train_id,
-    })
-
-    train_actions[code_name].run(message)
-
-    Pony().log({
-        'key': 'FINISH_ML_TRAIN',
-        'code_name': code_name,
-        'worker_id': wid,
-        'train_id': train_id,
-    })
-
-
-#######################
-
-
-@socketio.on('train_now')
-def train_now(message):
-    log.info('on train_now message: %s' % message['port'])
-    t = threading.Thread(target=start_train, args=(message,))
-    t.start()
-    return 'ok'
-
+from util.config import config
 
 if __name__ == '__main__':
-    log.warn('START PROCESS: ml worker (listen port: %d)', port)
-    Pony().log({'key': 'START_ML_WORKER', 'worker_id': wid})
-    socketio.run(app, host=host, port=port)
+    info = config["pubsub"]
+    host = info[0]
+    port = int(info[1])
+    conn = redis.StrictRedis(host=host, port=port, db=0)
+    with Connection(conn):
+        q = Queue(connection=conn)
+        Worker(q).work()

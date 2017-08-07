@@ -11,6 +11,7 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 
 import util
+from train import TrainCenter
 from util.config import config
 from util.log import log
 from util.singleton import SingletonMixin
@@ -18,6 +19,9 @@ from util.singleton import SingletonMixin
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+
+
+LOOP_INTERVAL_SEC = 5
 
 
 class LogCollector(SingletonMixin):
@@ -66,6 +70,8 @@ class LogCollector(SingletonMixin):
             Center().update_ps_detail(data)
         elif key == 'MEASUREMENT':
             Center().update_measurement(data)
+        elif key == 'TRAIN_NOW':
+            TrainCenter().train_now(data)
         elif key == 'set_variable':
             pass
         elif key == 'average':
@@ -74,13 +80,20 @@ class LogCollector(SingletonMixin):
             log.error('IMPME: %s' % key)
 
 
-def start_collect_log():
-    log.warn('START PROCESS: admin')
+def start_sub_log_and_command():
+    log.warn('START THREAD: admin / subscribe log and command')
     while True:
         LogCollector().collect()
         # time.sleep(0.001)
         Center().loop_count += 1
-        time.sleep(3)
+        time.sleep(LOOP_INTERVAL_SEC)
+
+
+def start_train_center():
+    log.warn('START THREAD: admin / train-center')
+    while True:
+        TrainCenter().update()
+        time.sleep(LOOP_INTERVAL_SEC)
 
 
 class MeasureContainer(object):
@@ -247,10 +260,17 @@ api.add_resource(DefaultRoute, '/')
 
 
 def run():
-    t = threading.Thread(target=start_collect_log)
-    t.daemon = True
-    t.start()
-    app.run(debug=False)
+    t1 = threading.Thread(target=start_sub_log_and_command)
+    t1.daemon = True
+    t1.start()
+
+    t2 = threading.Thread(target=start_train_center)
+    t2.daemon = True
+    t2.start()
+
+    admin_config = config["admin"]
+    app.run(port=int(admin_config['port']), debug=False)
+    # app.run(port=int(admin_config['port']), debug=True)
 
 
 if __name__ == '__main__':

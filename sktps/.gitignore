@@ -14,3 +14,4 @@ marathon-1.4.5
 pip_downloads
 *.tar.gz
 *.tgz
+npm-debug.log
