@@ -7,7 +7,7 @@ from rq import Connection, Queue, Worker
 from util.config import config
 
 if __name__ == '__main__':
-    info = config["pubsub"]
+    info = config['pubsub']
     host = info[0]
     port = int(info[1])
     conn = redis.StrictRedis(host=host, port=port, db=0)

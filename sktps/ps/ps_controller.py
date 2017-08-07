@@ -19,7 +19,7 @@ channel = 'ps'  # change it later
 
 class ParameterServerController(object):
     def __init__(self):
-        info = config["pubsub"]
+        info = config['pubsub']
         self.host = info[0]
         self.port = int(info[1])
 

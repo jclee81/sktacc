@@ -13,7 +13,7 @@ epoch = datetime.utcfromtimestamp(0)
 
 
 def get_redis_cluster_address_randomly():
-    candidates = config["ps"]
+    candidates = config['redis_cluster']
     return random.choice(candidates)
 
 

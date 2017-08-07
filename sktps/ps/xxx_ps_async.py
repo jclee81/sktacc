@@ -21,7 +21,7 @@ class ParameterServer(object):
         self.worker_id = worker_id
         self.iteration_id = -1
 
-        info = config["pubsub"]
+        info = config['pubsub']
         self.host = info[0]
         self.port = int(info[1])
 
@@ -50,7 +50,7 @@ class ParameterServer(object):
     def _set_variable_and_publish(self, iteration_id, variable, key):
         v = variable
         s = v.to_proto().SerializeToString()
-        # h = ":".join("{:02x}".format(ord(c)) for c in s)
+        # h = ':'.join('{:02x}'.format(ord(c)) for c in s)
 
         worker_count = self.infra_info['worker_count']
 

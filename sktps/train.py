@@ -64,7 +64,7 @@ class TrainCenter(SingletonMixin):
     def __init__(self):
         super(TrainCenter, self).__init__()
 
-        info = config["pubsub"]
+        info = config['pubsub']
         self.host = info[0]
         self.port = int(info[1])
         self.raw_conn = redis.StrictRedis(host=self.host, port=self.port, db=0)

@@ -26,7 +26,7 @@ LOOP_INTERVAL_SEC = 2
 class LogCollector(SingletonMixin):
     def __init__(self):
         super(LogCollector, self).__init__()
-        info = config["pubsub"]
+        info = config['pubsub']
         self.host = info[0]
         self.port = int(info[1])
         self.r = redis.StrictRedis(host=self.host, port=self.port, db=0)
@@ -268,7 +268,7 @@ def run():
     t2.daemon = True
     t2.start()
 
-    admin_config = config["admin"]
+    admin_config = config['admin']
     app.run(port=int(admin_config['port']), debug=False)
     # app.run(port=int(admin_config['port']), debug=True)
 

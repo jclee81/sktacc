@@ -26,7 +26,7 @@ class ParameterServer(object):
         self.iteration_id = int(iteration_id)
         self.variables = variables
 
-        info = config["pubsub"]
+        info = config['pubsub']
         self.host = info[0]
         self.port = int(info[1])
 
@@ -98,7 +98,7 @@ class ParameterServer(object):
                                   group_id):
         # v = variable
         # s = v.to_proto().SerializeToString()
-        # h = ":".join("{:02x}".format(ord(c)) for c in s)
+        # h = ':'.join('{:02x}'.format(ord(c)) for c in s)
 
         variable_names = [var.op.name for var in self.variables]
 

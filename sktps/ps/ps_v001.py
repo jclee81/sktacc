@@ -22,7 +22,7 @@ class ParameterServer(object):
         self.worker_id = worker_id
         self.iteration_id = -1
 
-        info = config["pubsub"]
+        info = config['pubsub']
         self.host = info[0]
         self.port = int(info[1])
 
@@ -93,7 +93,7 @@ class ParameterServer(object):
                                   transaction_id, group_id):
         # v = variable
         # s = v.to_proto().SerializeToString()
-        # h = ":".join("{:02x}".format(ord(c)) for c in s)
+        # h = ':'.join('{:02x}'.format(ord(c)) for c in s)
 
         variable_names = [var.op.name for var in variables]
 
