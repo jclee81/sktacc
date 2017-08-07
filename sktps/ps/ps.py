@@ -7,6 +7,7 @@ from rediscluster import StrictRedisCluster
 from tensorflow.python.framework import graph_util
 
 import util
+from aging import DefaultAgingPolicy
 from measure import MeasureHelper
 from util.config import config
 from util.log import log
@@ -17,13 +18,12 @@ channel = 'ps'  # change it later
 
 class ParameterServer(object):
     def __init__(self, sess, train_id, worker_id, iteration_id, variables,
-                 worker_count=-1):
+                 aging=None, worker_count=-1):
         log.debug('ParameterServer v0.0.2')
         self.sess = sess
         self.train_id = train_id
         self.worker_id = worker_id
         self.iteration_id = int(iteration_id)
-        self.prev_iteration_id = iteration_id - 1
         self.variables = variables
 
         info = config["pubsub"]
@@ -46,18 +46,22 @@ class ParameterServer(object):
         self.infra_info = {'worker_count': worker_count}
         self.measure_helper = MeasureHelper()
 
-    def load_variables(self, mode=None):
+        if aging is None:
+            self.aging = DefaultAgingPolicy()
+        else:
+            self.aging = aging
+        self.aging.init(self)
+
+    def load_variables(self):
         sess = self.sess
-        if self.prev_iteration_id < 0:
+        first, success, group_id, raw = self.aging.get_data(self)
+        if first:
             return True
-        group_id = util.get_group_id(self.train_id, self.prev_iteration_id)
-        g = sess.graph
-        raw = self.rc.get(group_id)
-        if raw is None:
+        if not success:
             return False
-        ####
         util.restore_graph(group_id, raw)
         ####
+        g = sess.graph
         for v in self.variables:
             src_key = '%s/average_%s:0' % (group_id, v.op.name)
             src = g.get_tensor_by_name(src_key)

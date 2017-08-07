@@ -21,7 +21,7 @@ CORS(app)
 api = Api(app)
 
 
-LOOP_INTERVAL_SEC = 5
+LOOP_INTERVAL_SEC = 2
 
 
 class LogCollector(SingletonMixin):

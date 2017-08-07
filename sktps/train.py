@@ -3,15 +3,11 @@ import uuid
 import redis
 from rq import Connection, Queue
 
+import ml.cnn_mnist
+import sandbox.fib
 from util.config import config
 from util.log import log
 from util.singleton import SingletonMixin
-
-import ml.code1
-import ml.code2
-import ml.mnist_with_ps
-import ml.cnn_mnist
-import sandbox.fib
 
 train_actions = {
     'fib': sandbox.fib,
@@ -51,8 +47,7 @@ class TrainSession(object):
     def check(self):
         for task in self.tasks:
             if task.return_value is None:
-                log.info('Train(%s) %d ing' % (
-                    self.code_name, self.cur_iter_id))
+                log.info('%s %d ing' % (self.code_name, self.cur_iter_id))
                 return False
         log.info('Train(%s, %s) %d complete' % (
             self.train_id, self.code_name, self.cur_iter_id))

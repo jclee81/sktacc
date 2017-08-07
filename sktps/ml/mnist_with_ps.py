@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
 import util
-from ps import ParameterServer
+import ps
 from util.log import log
 
 
@@ -70,17 +70,18 @@ def _run(mnist_input):
         summary_writer = tf.summary.FileWriter(logs_path,
                                                graph=tf.get_default_graph())
 
-        ps_conn = ParameterServer(
+        ps_conn = ps.ParameterServer(
             sess,
             train_id,
             worker_id,
             iteration_id,
             [W, b],
+            ps.DefaultAgingPolicy(),
             worker_count)
 
         while True:
             ########
-            if ps_conn.load_variables(None):
+            if ps_conn.load_variables():
                 break
             time.sleep(0.1)
 

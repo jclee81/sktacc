@@ -57,6 +57,7 @@ def run(raw_data):
             worker_id,
             iteration_id,
             [y1],
+            ps.DefaultAgingPolicy(),
             worker_count)
 
         while True:
