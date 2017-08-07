@@ -77,7 +77,6 @@ class ParameterServerController(object):
                 'controller', train_id, group_id)
             self.measure_helper.num_03_after_get_on_controller(m, len(keys))
             self._calculate_average_and_put(group_id, item)
-            self.measure_helper.num_04_after_cal_avg_on_controller(m)
 
             message = json.dumps({
                 'key': 'average',

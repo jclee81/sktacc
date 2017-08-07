@@ -14,7 +14,7 @@ from util.singleton import SingletonMixin
 
 train_worker_count = 2
 # train_code_name = 'code2'
-train_code_name = 'mnist_with_ps'
+train_code_name = 'mnist_softmax'
 
 
 class CmdHandler(SingletonMixin):

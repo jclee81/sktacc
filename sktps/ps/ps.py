@@ -8,7 +8,7 @@ from tensorflow.python.framework import graph_util
 
 import util
 from aging import DefaultAgingPolicy
-from measure import MeasureHelper
+from measure import Measure, MeasureHelper
 from util.config import config
 from util.log import log
 from util.pony import Pony
@@ -51,33 +51,48 @@ class ParameterServer(object):
         else:
             self.aging = aging
         self.aging.init(self)
+        group_id = util.get_group_id(train_id, iteration_id)
+        self.measurement = Measure().create_measurement(
+            'ps', train_id, group_id, worker_id)
+        self.measure_helper.num_00_init(self.measurement)
 
     def load_variables(self):
-        sess = self.sess
-        first, success, group_id, raw = self.aging.get_data(self)
-        if first:
+        self.measure_helper.num_01_before_load_variables(self.measurement)
+        try:
+            sess = self.sess
+            first, success, group_id, raw = self.aging.get_data(self)
+            if first:
+                return True
+            if not success:
+                return False
+            util.restore_graph(group_id, raw)
+            ####
+            g = sess.graph
+            for v in self.variables:
+                src_key = '%s/average_%s:0' % (group_id, v.op.name)
+                src = g.get_tensor_by_name(src_key)
+                sess.run(v.assign(src))
             return True
-        if not success:
-            return False
-        util.restore_graph(group_id, raw)
-        ####
-        g = sess.graph
-        for v in self.variables:
-            src_key = '%s/average_%s:0' % (group_id, v.op.name)
-            src = g.get_tensor_by_name(src_key)
-            sess.run(v.assign(src))
-        return True
+        finally:
+            self.measure_helper.num_01_after_load_variables(self.measurement)
 
     def save_variables(self):
-        sess = self.sess
-        group_id = util.get_group_id(self.train_id, self.iteration_id)
-        transaction_id = util.get_transaction_id(
-            self.train_id, self.worker_id, self.iteration_id)
-        data_size = self._set_variable_and_publish(
-            sess,
-            self.iteration_id,
-            transaction_id,
-            group_id)
+        self.measure_helper.num_02_before_save_variables(self.measurement)
+        data_size = -1
+        try:
+            sess = self.sess
+            group_id = util.get_group_id(self.train_id, self.iteration_id)
+            transaction_id = util.get_transaction_id(
+                self.train_id, self.worker_id, self.iteration_id)
+            data_size = self._set_variable_and_publish(
+                sess,
+                self.iteration_id,
+                transaction_id,
+                group_id)
+        finally:
+            self.measure_helper.num_02_after_save_variables(
+                self.measurement, data_size)
+            self.pony_measurement(self.measurement)
 
     def _set_variable_and_publish(self, sess, iteration_id, transaction_id,
                                   group_id):

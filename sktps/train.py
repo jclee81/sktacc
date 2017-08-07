@@ -3,11 +3,10 @@ import uuid
 import redis
 from rq import Connection, Queue
 
-import ml.code1
-import ml.code2
-import ml.mnist_with_ps
-
 import ml.cnn_mnist
+import ml.code1 as code1
+import ml.code2 as code2
+import ml.mnist_softmax as mnist_softmax
 import sandbox.fib
 from util.config import config
 from util.log import log
@@ -15,9 +14,9 @@ from util.singleton import SingletonMixin
 
 train_actions = {
     'fib': sandbox.fib,
-    'code1': ml.code1,
-    'code2': ml.code2,
-    'mnist_with_ps': ml.mnist_with_ps,
+    'code1': code1,
+    'code2': code2,
+    'mnist_softmax': mnist_softmax,
     'cnn_mnist': ml.cnn_mnist
 }
 
@@ -72,6 +71,17 @@ class TrainCenter(SingletonMixin):
         self.conn = Connection(self.raw_conn)
 
         self.train_sessions = []
+
+    def get_info(self):
+        ret = []
+        for session in self.train_sessions:
+            ret.append({
+                'train_id': session.train_id,
+                'code_name': session.code_name,
+                'worker_num': session.worker_count,
+                'status': ''
+            })
+        return ret
 
     def update(self):
         for session in self.train_sessions:

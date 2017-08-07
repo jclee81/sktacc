@@ -109,7 +109,7 @@ def run(message):
 
     mod = int(worker_id) % int(worker_count)
 
-    code_name = 'cnn_mnist_with_ps'
+    code_name = 'cnn_mnist'
 
     logs_path = '/tmp/tensorflow_logs/%s/%s/%s/%d' % (
         util.yymmdd(), code_name, worker_count, mod)
@@ -139,7 +139,7 @@ def run(message):
                     x: batch[0], y_: batch[1], keep_prob: 1.0})
                 print('step %d, training accuracy %g' % (i, train_accuracy))
 
-                if code_name == 'cnn_mnist_with_ps':
+                if code_name == 'cnn_mnist':
                     ps_conn.change_var_as_average(
                         sess,
                         iteration_id=i,
