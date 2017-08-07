@@ -7,12 +7,14 @@ import time
 
 import redis
 
-import ps.sample_freeze_restore as sfr
-import util
-from train_settings import train_code_name, train_worker_count
+from util import hhmmss
 from util.config import config
 from util.log import log
 from util.singleton import SingletonMixin
+
+train_worker_count = 2
+# train_code_name = 'code2'
+train_code_name = 'mnist_with_ps'
 
 
 class CmdHandler(SingletonMixin):
@@ -20,12 +22,12 @@ class CmdHandler(SingletonMixin):
         super(CmdHandler, self).__init__()
 
     def kill(self):
-        # kill $(ps aux | grep ml_worker | grep - v grep | awk '{print $2}')
+        # kill $(ps aux | grep worker | grep - v grep | awk '{print $2}')
         # subprocess.Popen(['pkill', '-f', 'python'])
         subprocess.Popen(['pkill', '-f', 'train'])
-        subprocess.Popen(['pkill', '-f', 'ml_worker'])
+        subprocess.Popen(['pkill', '-f', 'entry_ml_worker'])
         # subprocess.Popen(['pkill', '-f', 'admin'])
-        subprocess.Popen(['pkill', '-f', 'ps_controller'])
+        subprocess.Popen(['pkill', '-f', 'entry_ps_controller'])
 
     def admin(self):
         subprocess.Popen(['pkill', '-f', 'admin'])
@@ -33,16 +35,16 @@ class CmdHandler(SingletonMixin):
         subprocess.Popen(['python', 'admin.py'])
 
     def ps_controller(self):
-        subprocess.Popen(['pkill', '-f', 'ps_controller'])
+        subprocess.Popen(['pkill', '-f', 'entry_ps_controller'])
         time.sleep(0.5)
-        subprocess.Popen(['python', 'ps_controller.py'])
+        subprocess.Popen(['python', 'entry_ps_controller.py'])
 
-    def ml_worker(self):
-        subprocess.Popen(['pkill', '-f', 'ml_worker'])
+    def worker(self):
+        subprocess.Popen(['pkill', '-f', 'entry_ml_worker'])
         time.sleep(0.5)
         for i in range(0, train_worker_count):
-            log.info('ml_worker: %d start' % i)
-            subprocess.Popen(['python', 'ml_worker.py'])
+            log.info('entry_ml_worker: %d start' % i)
+            subprocess.Popen(['python', 'entry_ml_worker.py'])
 
     def train(self):
         info = config['pubsub']
@@ -51,7 +53,7 @@ class CmdHandler(SingletonMixin):
         r = redis.StrictRedis(host=host, port=port, db=0)
 
         key = 'TRAIN_NOW'
-        train_id = 't%s' % util.hhmmss()
+        train_id = 't%s' % hhmmss()
         code_name = train_code_name
 
         message = json.dumps({
@@ -76,11 +78,10 @@ parser.add_argument('command', choices=[
     'k', 'kill',
     'a', 'admin',
     'p', 'ps_controller',
-    'm', 'ml_worker',
+    'w', 'worker',
     't', 'train',
     'b', 'bang',
     'pub',
-    'sample_freeze_restore',
 ])
 args = parser.parse_args()
 c = args.command
@@ -91,10 +92,10 @@ elif c == 'a' or c == 'admin':
     CmdHandler().admin()
 elif c == 'p' or c == 'ps_controller':
     CmdHandler().ps_controller()
-elif c == 'm' or c == 'ml_worker':
+elif c == 'w' or c == 'worker':
     # CmdHandler().kill()
     # time.sleep(0.5)
-    CmdHandler().ml_worker()
+    CmdHandler().worker()
 elif c == 't' or c == 'train':
     CmdHandler().train()
 elif c == 'b' or c == 'bang':
@@ -102,11 +103,9 @@ elif c == 'b' or c == 'bang':
     time.sleep(0.5)
     # CmdHandler().admin()
     CmdHandler().ps_controller()
-    CmdHandler().ml_worker()
+    CmdHandler().worker()
     CmdHandler().train()
 elif c == 'pub':
     CmdHandler().pub()
-elif c == 'sample_freeze_restore':
-    sfr.run()
 else:
     log.warn('%s is not valid command' % c)

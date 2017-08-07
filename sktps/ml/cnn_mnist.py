@@ -109,7 +109,6 @@ def run(message):
 
     mod = int(worker_id) % int(worker_count)
 
-    # code_name = 'cnn_mnist_no_ps'
     code_name = 'cnn_mnist_with_ps'
 
     logs_path = '/tmp/tensorflow_logs/%s/%s/%s/%d' % (

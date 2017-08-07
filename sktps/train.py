@@ -3,10 +3,23 @@ import uuid
 import redis
 from rq import Connection, Queue
 
-from train_settings import train_actions
 from util.config import config
 from util.log import log
 from util.singleton import SingletonMixin
+
+import ml.code1
+import ml.code2
+import ml.mnist_with_ps
+import ml.cnn_mnist
+import sandbox.fib
+
+train_actions = {
+    'fib': sandbox.fib,
+    'code1': ml.code1,
+    'code2': ml.code2,
+    'mnist_with_ps': ml.mnist_with_ps,
+    'cnn_mnist': ml.cnn_mnist
+}
 
 
 class TrainSession(object):
