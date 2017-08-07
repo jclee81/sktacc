@@ -3,6 +3,10 @@ import uuid
 import redis
 from rq import Connection, Queue
 
+import ml.code1
+import ml.code2
+import ml.mnist_with_ps
+
 import ml.cnn_mnist
 import sandbox.fib
 from util.config import config
