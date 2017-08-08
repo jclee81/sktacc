@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
+import util
 from ps import ParameterServer
 from util.log import log
 
@@ -108,6 +109,8 @@ def run(raw_data):
     train_id = message['train_id']
     worker_count = message['worker_count']
 
+    logs_path = '/tmp/tensorflow_logs/%s/%s' % (util.yymmdd(), 'cnn_mnist')
+
     log.warn('Run cnn_mnist(%s, %s)' % (train_id, worker_id))
 
     mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
@@ -122,19 +125,34 @@ def run(raw_data):
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+    tf.summary.scalar("accuracy", accuracy)
+    tf.summary.scalar('cross_entropy', cross_entropy)
+    merged = tf.summary.merge_all()
+
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
+        summary_writer = tf.summary.FileWriter(
+            logs_path, graph=tf.get_default_graph())
+
         ps_conn = ParameterServer(
             sess, train_id, worker_id, iteration_id, variables, None,
             worker_count)
         batch = mnist.train.next_batch(200)
 
         ps_conn.load_variables()
-        train_step.run(
+        sess.run(
+            [train_step],
             feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
         ps_conn.save_variables()
 
-        print('test accuracy %g' % accuracy.eval(feed_dict={
-            x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+        summary, acc = sess.run(
+            [merged, accuracy],
+            feed_dict={
+                x: mnist.test.images,
+                y_: mnist.test.labels,
+                keep_prob: 1.0})
+        print('acc: %s' % acc)
+
+        # summary_writer.add_summary(summary, iteration_id)
 
     return True
