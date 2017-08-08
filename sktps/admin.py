@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
-LOOP_INTERVAL_SEC = 2
+LOOP_INTERVAL_SEC = 5
 
 
 class LogCollector(SingletonMixin):

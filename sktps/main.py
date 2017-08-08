@@ -13,8 +13,9 @@ from util.log import log
 from util.singleton import SingletonMixin
 
 train_worker_count = 2
-train_code_name = 'code2'
+# train_code_name = 'code2'
 # train_code_name = 'mnist_softmax'
+train_code_name = 'cnn_mnist'
 
 
 class CmdHandler(SingletonMixin):
@@ -30,6 +31,7 @@ class CmdHandler(SingletonMixin):
         subprocess.Popen(['pkill', '-f', 'entry_ps_controller'])
 
     def admin(self):
+        log.info('admin')
         subprocess.Popen(['pkill', '-f', 'admin'])
         time.sleep(0.3)
         subprocess.Popen(['python', 'admin.py'])

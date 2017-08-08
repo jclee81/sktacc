@@ -107,6 +107,7 @@ def _run(mnist_input):
         #     "Run the command line:\n --> tensorboard "
         #     "--logdir=/tmp/tensorflow_logs \nThen open http://0.0.0.0:6006/ "
         #     "into your web browser")
+
     log.info('Finish mnist')
     return True
 
