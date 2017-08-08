@@ -62,7 +62,7 @@ def run(raw_data):
 
         while True:
             ########
-            if ps_conn.load_variables(None):
+            if ps_conn.load_variables():
                 break
             time.sleep(0.1)
 
