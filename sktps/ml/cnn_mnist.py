@@ -102,14 +102,20 @@ def bias_variable(shape, vs):
     return v
 
 
+iter_total = 10
+
+
 def run(raw_data):
+    tf.reset_default_graph()
     message = raw_data[0]
     worker_id = raw_data[1]
     iteration_id = raw_data[2]
     train_id = message['train_id']
     worker_count = message['worker_count']
+    offset = int(iteration_id) * iter_total
 
-    logs_path = '/tmp/tensorflow_logs/%s/%s' % (util.yymmdd(), 'cnn_mnist')
+    logs_path = '/tmp/tensorflow_logs/%s/%s/%d' % (
+        util.yymmdd(), 'cnn_mnist', worker_count)
 
     log.warn('Run cnn_mnist(%s, %s)' % (train_id, worker_id))
 
@@ -137,22 +143,24 @@ def run(raw_data):
         ps_conn = ParameterServer(
             sess, train_id, worker_id, iteration_id, variables, None,
             worker_count)
-        batch = mnist.train.next_batch(200)
 
         ps_conn.load_variables()
-        sess.run(
-            [train_step],
-            feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+
+        for i in range(0, iter_total):
+            batch = mnist.train.next_batch(500)
+            summary, acc, ce, _ = sess.run(
+                [merged, accuracy, cross_entropy, train_step],
+                feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+            summary_writer.add_summary(summary, offset + i)
+        summary_writer.flush()
+        summary_writer.close()
         ps_conn.save_variables()
 
-        summary, acc = sess.run(
-            [merged, accuracy],
-            feed_dict={
-                x: mnist.test.images,
-                y_: mnist.test.labels,
-                keep_prob: 1.0})
-        print('acc: %s' % acc)
-
-        # summary_writer.add_summary(summary, iteration_id)
-
+        # summary, acc = sess.run(
+        #     [merged, accuracy],
+        #     feed_dict={
+        #         x: mnist.test.images,
+        #         y_: mnist.test.labels,
+        #         keep_prob: 1.0})
+        # print('acc: %s' % acc)
     return True
