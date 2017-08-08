@@ -269,7 +269,7 @@ def run():
     t2.start()
 
     admin_config = config['admin']
-    app.run(port=int(admin_config['port']), debug=False)
+    app.run(host='0.0.0.0', port=int(admin_config['port']), debug=False)
     # app.run(port=int(admin_config['port']), debug=True)
 
 
