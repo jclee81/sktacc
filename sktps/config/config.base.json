@@ -10,13 +10,13 @@
     "port": 4000
   },
 
-
-  "##": "type: one | many",
+  "###": "type: one | many",
   "ps_controller_type": "one",
 
-  "ml_worker_count": 3,
 
+  "###": "This is face info to test ps.",
   "fake_train_info": {
+    "ml_worker_count": 3,
     "parallel_count": 3,
     "train_code_name": "cnn_mnist"
   }

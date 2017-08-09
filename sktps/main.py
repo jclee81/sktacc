@@ -13,8 +13,7 @@ from util.log import log
 from util.singleton import SingletonMixin
 
 train_info = config['fake_train_info']
-ml_worker_count = config['ml_worker_count']
-
+ml_worker_count = train_info['ml_worker_count']
 parallel_count = int(train_info['parallel_count'])
 train_code_name = train_info['train_code_name']
 
