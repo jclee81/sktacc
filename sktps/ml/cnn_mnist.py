@@ -112,11 +112,11 @@ def run(raw_data):
     worker_id = raw_data[1]
     iteration_id = raw_data[2]
     train_id = message['train_id']
-    worker_count = message['worker_count']
+    parallel_count = message['parallel_count']
     offset = int(iteration_id) * iter_total
 
     logs_path = '/tmp/tensorflow_logs/%s/%s/%d' % (
-        util.yymmdd(), 'cnn_mnist', worker_count)
+        util.yymmdd(), 'cnn_mnist', parallel_count)
 
     log.warn('Run cnn_mnist(%s, %s)' % (train_id, worker_id))
 
@@ -143,7 +143,7 @@ def run(raw_data):
 
         ps_conn = ParameterServer(
             sess, train_id, worker_id, iteration_id, variables, None,
-            worker_count)
+            parallel_count)
 
         ps_conn.load_variables()
 

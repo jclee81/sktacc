@@ -104,7 +104,7 @@ class MeasureContainer(object):
 
         self.df = pd.DataFrame(
             columns=[
-                'train_id', 'group_id', 'worker_id', 'worker_count',
+                'train_id', 'group_id', 'worker_id', 'parallel_count',
                 'load_rtt', 'save_rtt', 'controller_rtt',
                 'data_size', 'success', 'cal',
             ],
@@ -126,7 +126,7 @@ class MeasureContainer(object):
             data['train_id'],
             data['group_id'],
             data['worker_id'],
-            data['worker_count'],
+            data['parallel_count'],
             load_rtt,
             save_rtt,
             controller_rtt,

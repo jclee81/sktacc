@@ -11,7 +11,7 @@ def get_sample_measurement_data(node_type):
             'node_type': 'controller',
             'train_id': 't095618',
             'group_id': u't095618-000000001',
-            'worker_count': 2,
+            'parallel_count': 2,
 
             'num_03_after_get_on_controller': 1501754183101,
             'num_04_after_cal_avg_on_controller': 1501754183201,

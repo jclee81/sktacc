@@ -108,7 +108,7 @@
           <th>Cal Time</th>
           <th>Iter#</th>
           <th>Data Size</th>
-          <th>Worker Num</th>
+          <th>Parallel Count</th>
         </tr>
         </thead>
 
@@ -119,9 +119,9 @@
           <td>{{item.saveRtt | number: 1}}</td>
           <td>{{item.controllerRtt| number: 1}}</td>
           <td>{{item.cal | number: 1}}</td>
-          <td>{{item.count / item.workerCount}}</td>
+          <td>{{item.count / item.parallelCount}}</td>
           <td>{{item.dataSize | number: 1}}</td>
-          <td>{{item.workerCount}}</td>
+          <td>{{item.parallelCount}}</td>
         </tr>
 
         </tbody>

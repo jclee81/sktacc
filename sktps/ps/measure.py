@@ -78,9 +78,9 @@ class MeasureHelper(object):
         m['num_02_after_save_variables'] = util.now_milli_sec()
         m['data_size'] = data_size
 
-    def num_03_after_get_on_controller(self, m, worker_count):
+    def num_03_after_get_on_controller(self, m, parallel_count):
         m['num_03_after_get_on_controller'] = util.now_milli_sec()
-        m['worker_count'] = worker_count
+        m['parallel_count'] = parallel_count
 
     def num_05_after_pub_on_controller(self, m):
         m['num_05_after_pub_on_controller'] = util.now_milli_sec()

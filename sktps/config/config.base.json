@@ -9,5 +9,13 @@
     "host": "127.0.0.1",
     "port": 4000
   },
+  "ps_controller_type": "mono",
+  "ml_worker_count": 1,
+
+  "fake_train_info": {
+    "parallel_count": 3,
+    "train_code_name": "cnn_mnist"
+  },
+
   "#": "END OF JSON"
 }

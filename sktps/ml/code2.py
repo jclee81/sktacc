@@ -2,9 +2,9 @@
 # # 1. init
 # # train_id: 사용자가 지정한 문자열인데 중복 이슈가 없도록 해결한다.
 # # my_iteration_id: 현재 이터레이션 값. sync의 기준이 된다
-# # worker_count: 같이 iteration을 도는 워커의 총 수.
+# # parallel_count: 같이 iteration을 도는 워커의 총 수.
 # # persistent: True라면 iteration의 결과값을 디스크에 저장하도록 한다.
-# ps.initialize(train_id, my_iteration_id, worker_count, persistent:True)
+# ps.initialize(train_id, my_iteration_id, parallel_count, persistent:True)
 #
 # # 2. build graph
 # sess = tf.Session()
@@ -43,7 +43,7 @@ def run(raw_data):
     iteration_id = raw_data[2]
 
     train_id = message['train_id']
-    worker_count = message['worker_count']
+    parallel_count = message['parallel_count']
 
     y1 = tf.Variable([float(iteration_id)], name='y1')
     init_op = tf.global_variables_initializer()
@@ -58,7 +58,7 @@ def run(raw_data):
             iteration_id,
             [y1],
             ps.DefaultAgingPolicy(),
-            worker_count)
+            parallel_count)
 
         while True:
             ########
