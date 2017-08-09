@@ -109,6 +109,7 @@ class ParameterServerController(object):
             ts = []
             for key in keys:
                 raw = self.rc.get(key)
+                # TODO: check raw is not None
                 util.restore_graph(key, raw)
                 g = sess.graph
                 t = g.get_tensor_by_name('%s/%s:0' % (key, v))
