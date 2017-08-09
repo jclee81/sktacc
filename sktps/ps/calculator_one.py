@@ -13,7 +13,7 @@ from util.pony import Pony
 channel = 'ps'  # change it later
 
 
-class CalculatorMono(object):
+class CalculatorOne(object):
     def __init__(self):
         self.progress_dict = {}
         self.measure_helper = MeasureHelper()
@@ -26,6 +26,7 @@ class CalculatorMono(object):
         self.r = c.r
         self.p = c.p
         self.rc = c.rc
+        log.info('CalculatorOne')
 
     def handle(self, message):
         if 'key' not in message:
