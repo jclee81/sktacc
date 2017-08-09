@@ -4,6 +4,19 @@ import util
 from util.singleton import SingletonMixin
 
 
+class SimpleMeasurement:
+    def __init__(self, key, measurement):
+        self.key = key
+        self.measurement = measurement
+        self.start = util.now_milli_sec()
+        self.end = None
+
+    def end_measure(self):
+        self.end = util.now_milli_sec()
+        diff = int(self.end) - int(self.start)
+        self.measurement[self.key] += int(diff)
+
+
 class Measure(SingletonMixin):
     def __init__(self):
         super(Measure, self).__init__()
@@ -20,6 +33,7 @@ class Measure(SingletonMixin):
 
     def create_measurement(self, node_type, train_id, group_id, worker_id=None):
         if worker_id:
+            # ml worker case
             return {
                 'node_type': node_type,
                 'train_id': train_id,
@@ -27,10 +41,14 @@ class Measure(SingletonMixin):
                 'worker_id': worker_id,
             }
         else:
+            # controller case
             return {
                 'node_type': node_type,
                 'train_id': train_id,
                 'group_id': group_id,
+                'cal_and_put': 0,
+                'init': 0,
+                'cal': 0,
             }
 
     def append(self, measurement):

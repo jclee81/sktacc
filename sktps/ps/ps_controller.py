@@ -9,7 +9,7 @@ from rediscluster import StrictRedisCluster
 from tensorflow.python.framework import graph_util
 
 import util
-from measure import Measure, MeasureHelper
+from measure import Measure, MeasureHelper, SimpleMeasurement
 from util.config import config
 from util.log import log
 from util.pony import Pony
@@ -76,7 +76,7 @@ class ParameterServerController(object):
             m = Measure().create_measurement(
                 'controller', train_id, group_id)
             self.measure_helper.num_03_after_get_on_controller(m, len(keys))
-            self._calculate_average_and_put(group_id, item)
+            self._calculate_average_and_put(group_id, item, m)
 
             message = json.dumps({
                 'key': 'average',
@@ -90,30 +90,38 @@ class ParameterServerController(object):
         else:
             log.debug('Wait more data')
 
-    def _calculate_average_and_put(self, group_id, item):
+    def _calculate_average_and_put(self, group_id, item, m):
         keys = item['keys']
         tf.reset_default_graph()
         sess = tf.Session()
         new_vars = []
+
+        m_cal_and_put = SimpleMeasurement('cal_and_put', m)
+
+        m_init = SimpleMeasurement('init', m)
+        init_op = tf.global_variables_initializer()
+        sess.run(init_op)
+        m_init.end_measure()
+
         for v in item['variables']:
             count = 0
             name = 'average_%s' % v
             ts = []
             for key in keys:
-                init_op = tf.global_variables_initializer()
-                sess.run(init_op)
                 raw = self.rc.get(key)
                 util.restore_graph(key, raw)
                 g = sess.graph
                 t = g.get_tensor_by_name('%s/%s:0' % (key, v))
                 ts.append(t)
                 count += 1
+
+            m_cal = SimpleMeasurement('cal', m)
             avg = tf.foldl(tf.add, ts) / count
             new_var = tf.Variable(avg, name=name)
-            init_op = tf.global_variables_initializer()
-            sess.run(init_op)
+            sess.run(new_var.initializer)
             sess.run(new_var)
             new_vars.append(name)
+            m_cal.end_measure()
 
         g = sess.graph
         g_def = g.as_graph_def()
@@ -122,6 +130,8 @@ class ParameterServerController(object):
         s = constants.SerializeToString()
         self.rc.set(group_id, s)
         sess.close()
+
+        m_cal_and_put.end_measure()
 
     def run(self):
         log.warn('START PROCESS: ParameterServerController')

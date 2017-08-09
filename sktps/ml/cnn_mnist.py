@@ -103,6 +103,7 @@ def bias_variable(shape, vs):
 
 
 iter_total = 10
+batch_size = 1
 
 
 def run(raw_data):
@@ -147,7 +148,7 @@ def run(raw_data):
         ps_conn.load_variables()
 
         for i in range(0, iter_total):
-            batch = mnist.train.next_batch(500)
+            batch = mnist.train.next_batch(batch_size)
             summary, acc, ce, _ = sess.run(
                 [merged, accuracy, cross_entropy, train_step],
                 feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
