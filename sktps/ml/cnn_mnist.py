@@ -103,7 +103,7 @@ def bias_variable(shape, vs):
 
 
 iter_total = 10
-batch_size = 1
+batch_size = 200
 
 
 def run(raw_data):
