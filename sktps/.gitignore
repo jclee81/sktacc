@@ -16,3 +16,12 @@ pip_downloads
 *.tgz
 npm-debug.log
 node_modules
+58.sh
+59.sh
+60.sh
+config/config.local.json
+kill_all_redis.sh
+run_all_redis.sh
+my_cluster/
+clean_all_redis.sh
+pub_sub.sh
