@@ -124,3 +124,6 @@ class CalculatorOne(object):
         sess.close()
 
         m_cal_and_put.end_measure()
+
+    def loop(self):
+        pass
