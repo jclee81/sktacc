@@ -16,7 +16,7 @@ channel = 'ps'  # change it later
 
 
 class ParameterServer(object):
-    def __init__(self, train_id, worker_id, worker_count=-1):
+    def __init__(self, train_id, worker_id, parallel_count=-1):
         self.train_id = train_id
         self.worker_id = worker_id
         self.iteration_id = -1
@@ -39,7 +39,7 @@ class ParameterServer(object):
 
         self.future_list = []
         self.infra_info = {
-            'worker_count': -1,
+            'parallel_count': -1,
         }
 
         self._log('created')
@@ -52,7 +52,7 @@ class ParameterServer(object):
         s = v.to_proto().SerializeToString()
         # h = ':'.join('{:02x}'.format(ord(c)) for c in s)
 
-        worker_count = self.infra_info['worker_count']
+        parallel_count = self.infra_info['parallel_count']
 
         self.rc.set(key, s)
 
@@ -60,7 +60,7 @@ class ParameterServer(object):
             'worker_id': self.worker_id,
             'train_id': self.train_id,
             'iteration_id': iteration_id,
-            'worker_count': worker_count
+            'parallel_count': parallel_count
         })
         self.r.publish(channel=channel, message=message)
         self._log('pub %s' % iteration_id)

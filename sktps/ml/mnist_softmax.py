@@ -18,11 +18,11 @@ class MnistInput(object):
         self.worker_id = worker_id
         self.train_id = message['train_id']
         self.code_name = message['code_name']
-        self.worker_count = message['worker_count']
+        self.parallel_count = message['parallel_count']
         self.iteration_id = int(iteration_id)
         self.logs_path = \
             '/tmp/tensorflow_logs/%s/%s/%s/%s' % (
-                util.yymmdd(), self.code_name, self.worker_count,
+                util.yymmdd(), self.code_name, self.parallel_count,
                 self.worker_id)
 
 
@@ -39,7 +39,7 @@ def _run(mnist_input):
     log.info('Start mnist: %s' % code_name)
     worker_id = mi.worker_id
     train_id = mi.train_id
-    worker_count = mi.worker_count
+    parallel_count = mi.parallel_count
     iteration_id = mi.iteration_id
     logs_path = mi.logs_path
     learning_rate = 0.01
@@ -77,7 +77,7 @@ def _run(mnist_input):
             iteration_id,
             [W, b],
             ps.DefaultAgingPolicy(),
-            worker_count)
+            parallel_count)
 
         while True:
             ########
@@ -107,6 +107,7 @@ def _run(mnist_input):
         #     "Run the command line:\n --> tensorboard "
         #     "--logdir=/tmp/tensorflow_logs \nThen open http://0.0.0.0:6006/ "
         #     "into your web browser")
+
     log.info('Finish mnist')
     return True
 

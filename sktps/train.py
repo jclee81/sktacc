@@ -24,7 +24,7 @@ train_actions = {
 class TrainSession(object):
     def __init__(self, data, conn):
         self.data = data
-        self.worker_count = int(data['worker_count'])
+        self.parallel_count = int(data['parallel_count'])
         self.code_name = self.data['code_name']
         self.train_id = self.data['train_id']
         self.cur_iter_id = 0
@@ -39,7 +39,7 @@ class TrainSession(object):
         code_name = self.code_name
         self.data['iteration_id'] = self.cur_iter_id
         index = 0
-        while index < self.worker_count:
+        while index < self.parallel_count:
             worker_id = str(uuid.uuid4())[:8]
             index += 1
             task = self.q.enqueue(
@@ -78,7 +78,7 @@ class TrainCenter(SingletonMixin):
             ret.append({
                 'train_id': session.train_id,
                 'code_name': session.code_name,
-                'worker_num': session.worker_count,
+                'parallel_count': session.parallel_count,
                 'status': ''
             })
         return ret

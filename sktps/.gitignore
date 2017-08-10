@@ -25,3 +25,4 @@ run_all_redis.sh
 my_cluster/
 clean_all_redis.sh
 pub_sub.sh
+.ipynb_checkpoints

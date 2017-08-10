@@ -11,12 +11,12 @@ def run(raw_data):
     iteration_id = raw_data[2]
 
     train_id = message['train_id']
-    worker_count = message['worker_count']
+    parallel_count = message['parallel_count']
 
     y1 = tf.Variable([float(iteration_id)], name='y1')
     init_op = tf.global_variables_initializer()
 
-    ps_conn = ParameterServer(train_id, worker_id, worker_count)
+    ps_conn = ParameterServer(train_id, worker_id, parallel_count)
 
     with tf.Session() as sess:
         sess.run(init_op)

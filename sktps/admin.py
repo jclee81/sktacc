@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
-LOOP_INTERVAL_SEC = 2
+LOOP_INTERVAL_SEC = 5
 
 
 class LogCollector(SingletonMixin):
@@ -104,9 +104,9 @@ class MeasureContainer(object):
 
         self.df = pd.DataFrame(
             columns=[
-                'train_id', 'group_id', 'worker_id', 'worker_count',
+                'train_id', 'group_id', 'worker_id', 'parallel_count',
                 'load_rtt', 'save_rtt', 'controller_rtt',
-                'data_size', 'success'
+                'data_size', 'success', 'cal',
             ],
             dtype='float')
 
@@ -120,17 +120,19 @@ class MeasureContainer(object):
         save_rtt = save_end - save_start
         controller_rtt = int(data['num_05_after_pub_on_controller']) - int(
             data['num_03_after_get_on_controller'])
+        cal = int(data['cal'])
         success = 1
         return [
             data['train_id'],
             data['group_id'],
             data['worker_id'],
-            data['worker_count'],
+            data['parallel_count'],
             load_rtt,
             save_rtt,
             controller_rtt,
             data['data_size'],
             success,
+            cal,
         ]
 
     def update(self, data):

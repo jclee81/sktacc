@@ -18,7 +18,7 @@ channel = 'ps'  # change it later
 
 class ParameterServer(object):
     def __init__(self, sess, train_id, worker_id, iteration_id, variables,
-                 aging=None, worker_count=-1):
+                 aging=None, parallel_count=-1):
         log.debug('ParameterServer v0.0.2')
         self.sess = sess
         self.train_id = train_id
@@ -43,7 +43,7 @@ class ParameterServer(object):
             startup_nodes=startup_nodes, decode_responses=False)
 
         self.future_list = []
-        self.infra_info = {'worker_count': worker_count}
+        self.infra_info = {'parallel_count': parallel_count}
         self.measure_helper = MeasureHelper()
 
         if aging is None:
@@ -108,7 +108,7 @@ class ParameterServer(object):
             sess, g_def, variable_names)
         s = constants.SerializeToString()
 
-        worker_count = self.infra_info['worker_count']
+        parallel_count = self.infra_info['parallel_count']
         self.rc.set(transaction_id, s)
         message = json.dumps({
             'key': 'set_variable',
@@ -118,7 +118,7 @@ class ParameterServer(object):
             'worker_id': self.worker_id,
             'train_id': self.train_id,
             'iteration_id': iteration_id,
-            'worker_count': worker_count
+            'parallel_count': parallel_count
         })
         self.r.publish(channel=channel, message=message)
         log.debug('pub %s' % iteration_id)

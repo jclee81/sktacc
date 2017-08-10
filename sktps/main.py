@@ -12,9 +12,10 @@ from util.config import config
 from util.log import log
 from util.singleton import SingletonMixin
 
-train_worker_count = 2
-train_code_name = 'code2'
-# train_code_name = 'mnist_softmax'
+train_info = config['fake_train_info']
+ml_worker_count = train_info['ml_worker_count']
+parallel_count = int(train_info['parallel_count'])
+train_code_name = train_info['train_code_name']
 
 
 class CmdHandler(SingletonMixin):
@@ -30,6 +31,7 @@ class CmdHandler(SingletonMixin):
         subprocess.Popen(['pkill', '-f', 'entry_ps_controller'])
 
     def admin(self):
+        log.info('admin')
         subprocess.Popen(['pkill', '-f', 'admin'])
         time.sleep(0.3)
         subprocess.Popen(['python', 'admin.py'])
@@ -42,7 +44,7 @@ class CmdHandler(SingletonMixin):
     def worker(self):
         subprocess.Popen(['pkill', '-f', 'entry_ml_worker'])
         time.sleep(0.5)
-        for i in range(0, train_worker_count):
+        for i in range(0, ml_worker_count):
             log.info('entry_ml_worker: %d start' % i)
             subprocess.Popen(['python', 'entry_ml_worker.py'])
 
@@ -59,7 +61,7 @@ class CmdHandler(SingletonMixin):
         message = json.dumps({
             'key': key,
             'train_id': train_id,
-            'worker_count': train_worker_count,
+            'parallel_count': parallel_count,
             'code_name': code_name})
         r.publish('admin_command', message)
 

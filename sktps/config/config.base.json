@@ -9,5 +9,15 @@
     "host": "127.0.0.1",
     "port": 4000
   },
-  "#": "END OF JSON"
+
+  "###": "type: one | many",
+  "ps_controller_type": "one",
+
+
+  "###": "This is face info to test ps.",
+  "fake_train_info": {
+    "ml_worker_count": 3,
+    "parallel_count": 3,
+    "train_code_name": "cnn_mnist"
+  }
 }

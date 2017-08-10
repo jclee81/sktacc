@@ -4,6 +4,19 @@ import util
 from util.singleton import SingletonMixin
 
 
+class SimpleMeasurement:
+    def __init__(self, key, measurement):
+        self.key = key
+        self.measurement = measurement
+        self.start = util.now_milli_sec()
+        self.end = None
+
+    def end_measure(self):
+        self.end = util.now_milli_sec()
+        diff = int(self.end) - int(self.start)
+        self.measurement[self.key] += int(diff)
+
+
 class Measure(SingletonMixin):
     def __init__(self):
         super(Measure, self).__init__()
@@ -20,6 +33,7 @@ class Measure(SingletonMixin):
 
     def create_measurement(self, node_type, train_id, group_id, worker_id=None):
         if worker_id:
+            # ml worker case
             return {
                 'node_type': node_type,
                 'train_id': train_id,
@@ -27,10 +41,14 @@ class Measure(SingletonMixin):
                 'worker_id': worker_id,
             }
         else:
+            # controller case
             return {
                 'node_type': node_type,
                 'train_id': train_id,
                 'group_id': group_id,
+                'cal_and_put': 0,
+                'init': 0,
+                'cal': 0,
             }
 
     def append(self, measurement):
@@ -60,9 +78,9 @@ class MeasureHelper(object):
         m['num_02_after_save_variables'] = util.now_milli_sec()
         m['data_size'] = data_size
 
-    def num_03_after_get_on_controller(self, m, worker_count):
+    def num_03_after_get_on_controller(self, m, parallel_count):
         m['num_03_after_get_on_controller'] = util.now_milli_sec()
-        m['worker_count'] = worker_count
+        m['parallel_count'] = parallel_count
 
     def num_05_after_pub_on_controller(self, m):
         m['num_05_after_pub_on_controller'] = util.now_milli_sec()

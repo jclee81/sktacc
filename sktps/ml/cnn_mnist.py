@@ -102,27 +102,29 @@ def bias_variable(shape, vs):
     return v
 
 
-def run(message):
-    worker_id = message['port']
+iter_total = 10
+batch_size = 1
+
+
+def run(raw_data):
+    tf.reset_default_graph()
+    message = raw_data[0]
+    worker_id = raw_data[1]
+    iteration_id = raw_data[2]
     train_id = message['train_id']
-    worker_count = message['worker_count']
+    parallel_count = message['parallel_count']
+    offset = int(iteration_id) * iter_total
 
-    mod = int(worker_id) % int(worker_count)
-
-    code_name = 'cnn_mnist'
-
-    logs_path = '/tmp/tensorflow_logs/%s/%s/%s/%d' % (
-        util.yymmdd(), code_name, worker_count, mod)
+    logs_path = '/tmp/tensorflow_logs/%s/%s/%d' % (
+        util.yymmdd(), 'cnn_mnist', parallel_count)
 
     log.warn('Run cnn_mnist(%s, %s)' % (train_id, worker_id))
 
-    ps_conn = ParameterServer(train_id, worker_id, worker_count)
-
-    mnist = input_data.read_data_sets("../sample/MNIST_data/", one_hot=True)
+    mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
     x = tf.placeholder(tf.float32, [None, 784])
     y_ = tf.placeholder(tf.float32, [None, 10])
 
-    y_conv, keep_prob, vs = deepnn(x)
+    y_conv, keep_prob, variables = deepnn(x)
 
     cross_entropy = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
@@ -130,24 +132,36 @@ def run(message):
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+    tf.summary.scalar("accuracy", accuracy)
+    tf.summary.scalar('cross_entropy', cross_entropy)
+    merged = tf.summary.merge_all()
+
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(1000):
-            batch = mnist.train.next_batch(50)
-            if i % 100 == 0:
-                train_accuracy = accuracy.eval(feed_dict={
-                    x: batch[0], y_: batch[1], keep_prob: 1.0})
-                print('step %d, training accuracy %g' % (i, train_accuracy))
+        summary_writer = tf.summary.FileWriter(
+            logs_path, graph=tf.get_default_graph())
 
-                if code_name == 'cnn_mnist':
-                    ps_conn.change_var_as_average(
-                        sess,
-                        iteration_id=i,
-                        variables=vs,
-                        time_out_sec=10)
+        ps_conn = ParameterServer(
+            sess, train_id, worker_id, iteration_id, variables, None,
+            parallel_count)
 
-            train_step.run(
+        ps_conn.load_variables()
+
+        for i in range(0, iter_total):
+            batch = mnist.train.next_batch(batch_size)
+            summary, acc, ce, _ = sess.run(
+                [merged, accuracy, cross_entropy, train_step],
                 feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+            summary_writer.add_summary(summary, offset + i)
+        summary_writer.flush()
+        summary_writer.close()
+        ps_conn.save_variables()
 
-        print('test accuracy %g' % accuracy.eval(feed_dict={
-            x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+        # summary, acc = sess.run(
+        #     [merged, accuracy],
+        #     feed_dict={
+        #         x: mnist.test.images,
+        #         y_: mnist.test.labels,
+        #         keep_prob: 1.0})
+        # print('acc: %s' % acc)
+    return True
