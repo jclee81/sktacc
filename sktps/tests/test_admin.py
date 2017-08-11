@@ -11,10 +11,11 @@ def get_sample_measurement_data(node_type):
             'node_type': 'controller',
             'train_id': 't095618',
             'group_id': u't095618-000000001',
-            'worker_count': 2,
+            'parallel_count': 2,
+
+            'cal': 0,
 
             'num_03_after_get_on_controller': 1501754183101,
-            'num_04_after_cal_avg_on_controller': 1501754183201,
             'num_05_after_pub_on_controller': 1501754183201,
         }
     else:
@@ -25,15 +26,13 @@ def get_sample_measurement_data(node_type):
             'worker_id': 'w11111',
             'group_id': u't095618-000000001',
             'data_size': 55,
+            'cal': 0,
 
-            'num_00_start_call_func': 1501754183004,
-            'num_01_after_pub_on_worker': 1501754183007,
-            'num_06_after_sub_on_worker': 1501754183201,
-            'num_07_after_get_on_worker': 1501754183201,
-            'num_08_after_assign_on_worker': 1501754183206,
-            'num_09_finish_call_func': 1501754183206,
-
-            'success': True,
+            'num_00_init': 1501754183004,
+            'num_01_before_load_variables': 1501754183007,
+            'num_01_after_load_variables': 1501754183201,
+            'num_02_before_save_variables': 1501754183201,
+            'num_02_after_save_variables': 1501754183206,
         }, {
             'key': 'MEASUREMENT',
             'node_type': 'ps',
@@ -41,15 +40,14 @@ def get_sample_measurement_data(node_type):
             'worker_id': 'w22222',
             'group_id': u't095618-000000001',
             'data_size': 55,
+            'cal': 0,
 
-            'num_00_start_call_func': 1501754183004,
-            'num_01_after_pub_on_worker': 1501754183007,
-            'num_06_after_sub_on_worker': 1501754183201,
-            'num_07_after_get_on_worker': 1501754183201,
-            'num_08_after_assign_on_worker': 1501754183206,
-            'num_09_finish_call_func': 1501754183206,
+            'num_00_init': 1501754183004,
+            'num_01_before_load_variables': 1501754183007,
+            'num_01_after_load_variables': 1501754183201,
+            'num_02_before_save_variables': 1501754183201,
+            'num_02_after_save_variables': 1501754183206,
 
-            'success': True,
         }]
 
 

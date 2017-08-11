@@ -65,30 +65,30 @@
   </div>
 
   <!-- Worker List -->
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <span class="glyphicon glyphicon-user"/>
-      Worker List
-    </div>
+  <!--<div class="panel panel-default">-->
+    <!--<div class="panel-heading">-->
+      <!--<span class="glyphicon glyphicon-user"/>-->
+      <!--Worker List-->
+    <!--</div>-->
 
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-        <tr>
-          <th>WorkerId</th>
-          <th>Description</th>
-        </tr>
-        </thead>
+    <!--<div class="table-responsive">-->
+      <!--<table class="table table-striped">-->
+        <!--<thead>-->
+        <!--<tr>-->
+          <!--<th>WorkerId</th>-->
+          <!--<th>Description</th>-->
+        <!--</tr>-->
+        <!--</thead>-->
 
-        <tbody>
-        <tr ng-repeat="wItem in workerList  track by $index">
-          <td>{{ wItem.workerId }}</td>
-          <td>{{ wItem.description }}</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+        <!--<tbody>-->
+        <!--<tr ng-repeat="wItem in workerList  track by $index">-->
+          <!--<td>{{ wItem.workerId }}</td>-->
+          <!--<td>{{ wItem.description }}</td>-->
+        <!--</tr>-->
+        <!--</tbody>-->
+      <!--</table>-->
+    <!--</div>-->
+  <!--</div>-->
 
   <!-- Stat List -->
   <div class="panel panel-default">
@@ -102,22 +102,26 @@
         <thead>
         <tr>
           <th>TrainId</th>
-          <th>Total RTT</th>
-          <th>Controller RTT</th>
+          <th>Load RTT</th>
+          <th>Save RTT</th>
+          <th>Avg RTT</th>
+          <th>Cal Time</th>
           <th>Iter#</th>
           <th>Data Size</th>
-          <th>Worker Num</th>
+          <th>Parallel Count</th>
         </tr>
         </thead>
 
         <tbody>
         <tr ng-repeat="(trainId, item) in statOfTrain track by $index">
           <td>{{trainId}}</td>
-          <td>{{item.totalRtt | number: 1}}</td>
+          <td>{{item.loadRtt | number: 1}}</td>
+          <td>{{item.saveRtt | number: 1}}</td>
           <td>{{item.controllerRtt| number: 1}}</td>
-          <td>{{item.count / item.workerCount}}</td>
+          <td>{{item.cal | number: 1}}</td>
+          <td>{{item.count / item.parallelCount}}</td>
           <td>{{item.dataSize | number: 1}}</td>
-          <td>{{item.workerCount}}</td>
+          <td>{{item.parallelCount}}</td>
         </tr>
 
         </tbody>
@@ -126,46 +130,46 @@
   </div>
 
   <!-- PS List -->
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <span class="glyphicon glyphicon-user"/>
-      PS List
-    </div>
+  <!--<div class="panel panel-default">-->
+    <!--<div class="panel-heading">-->
+      <!--<span class="glyphicon glyphicon-user"/>-->
+      <!--PS List-->
+    <!--</div>-->
 
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-        <tr>
-          <th>GroupId</th>
-          <th>TrainId</th>
-          <th>Worker Num</th>
-          <th>Progress</th>
-          <th>Log</th>
-        </tr>
-        </thead>
+    <!--<div class="table-responsive">-->
+      <!--<table class="table table-striped">-->
+        <!--<thead>-->
+        <!--<tr>-->
+          <!--<th>GroupId</th>-->
+          <!--<th>TrainId</th>-->
+          <!--<th>Worker Num</th>-->
+          <!--<th>Progress</th>-->
+          <!--<th>Log</th>-->
+        <!--</tr>-->
+        <!--</thead>-->
 
-        <tbody>
-        <tr ng-repeat-start="pItem in psList  track by $index">
-          <td>{{ pItem.groupId }}</td>
-          <td>{{ pItem.trainId }}</td>
-          <td>{{ pItem.workerNum }}</td>
-          <td>{{ pItem.progress }}</td>
-          <td>
-            <span style="cursor: pointer"
-                  class="glyphicon glyphicon-triangle-bottom"
-                  ng-class="{false: 'glyphicon-triangle-bottom', true: 'glyphicon-triangle-top'}[pItem.isShow]"
-                  ng-click=toogleShowPSLog($index)></span>
-          </td>
-        </tr>
+        <!--<tbody>-->
+        <!--<tr ng-repeat-start="pItem in psList  track by $index">-->
+          <!--<td>{{ pItem.groupId }}</td>-->
+          <!--<td>{{ pItem.trainId }}</td>-->
+          <!--<td>{{ pItem.workerNum }}</td>-->
+          <!--<td>{{ pItem.progress }}</td>-->
+          <!--<td>-->
+            <!--<span style="cursor: pointer"-->
+                  <!--class="glyphicon glyphicon-triangle-bottom"-->
+                  <!--ng-class="{false: 'glyphicon-triangle-bottom', true: 'glyphicon-triangle-top'}[pItem.isShow]"-->
+                  <!--ng-click=toogleShowPSLog($index)></span>-->
+          <!--</td>-->
+        <!--</tr>-->
 
-        <tr ng-repeat-end ng-show="pItem.isShow" ng-if="true">
-          <td colspan="5" style="white-space: pre-line">
-            {{ getPSLog($index)}}
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+        <!--<tr ng-repeat-end ng-show="pItem.isShow" ng-if="true">-->
+          <!--<td colspan="5" style="white-space: pre-line">-->
+            <!--{{ getPSLog($index)}}-->
+          <!--</td>-->
+        <!--</tr>-->
+        <!--</tbody>-->
+      <!--</table>-->
+    <!--</div>-->
+  <!--</div>-->
 
 </div>

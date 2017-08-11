@@ -13,7 +13,7 @@ epoch = datetime.utcfromtimestamp(0)
 
 
 def get_redis_cluster_address_randomly():
-    candidates = config["ps"]
+    candidates = config['redis_cluster']
     return random.choice(candidates)
 
 
@@ -22,8 +22,12 @@ def get_worker_id(host, port):
     return wid
 
 
-def get_ps_id(train_id, worker_id, iteration_id):
-    return '%s-%s-%s' % (train_id, worker_id, iteration_id)
+def get_transaction_id(train_id, worker_id, iteration_id):
+    return '%s-%s-%09d' % (worker_id, train_id, iteration_id)
+
+
+def get_group_id(train_id, iteration_id):
+    return '%s-%09d' % (train_id, int(iteration_id))
 
 
 def extract_json(message):

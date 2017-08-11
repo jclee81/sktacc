@@ -7,13 +7,15 @@ import time
 
 import redis
 
-import ps.sample_freeze_restore as sfr
-import util
-from train_settings import train_code_names
+from util import hhmmss
 from util.config import config
 from util.log import log
-from util.pony import Pony
 from util.singleton import SingletonMixin
+
+train_info = config['fake_train_info']
+ml_worker_count = train_info['ml_worker_count']
+parallel_count = int(train_info['parallel_count'])
+train_code_name = train_info['train_code_name']
 
 
 class CmdHandler(SingletonMixin):
@@ -21,49 +23,50 @@ class CmdHandler(SingletonMixin):
         super(CmdHandler, self).__init__()
 
     def kill(self):
-        # kill $(ps aux | grep ml_worker | grep - v grep | awk '{print $2}')
+        # kill $(ps aux | grep worker | grep - v grep | awk '{print $2}')
         # subprocess.Popen(['pkill', '-f', 'python'])
-        subprocess.Popen(['pkill', '-f', 'trainer'])
-        subprocess.Popen(['pkill', '-f', 'ml_worker'])
+        subprocess.Popen(['pkill', '-f', 'train'])
+        subprocess.Popen(['pkill', '-f', 'entry_ml_worker'])
         # subprocess.Popen(['pkill', '-f', 'admin'])
-        subprocess.Popen(['pkill', '-f', 'ps_controller'])
+        subprocess.Popen(['pkill', '-f', 'entry_ps_controller'])
 
     def admin(self):
+        log.info('admin')
         subprocess.Popen(['pkill', '-f', 'admin'])
         time.sleep(0.3)
         subprocess.Popen(['python', 'admin.py'])
 
     def ps_controller(self):
-        subprocess.Popen(['python', 'ps_controller.py'])
+        subprocess.Popen(['pkill', '-f', 'entry_ps_controller'])
+        time.sleep(0.5)
+        subprocess.Popen(['python', 'entry_ps_controller.py'])
 
-    def ml_worker(self):
-        worker = config["ml_worker"]
-        for info in worker:
-            host = info[0]
-            port = info[1]
-            subprocess.Popen(['python', 'ml_worker.py', host, port])
+    def worker(self):
+        subprocess.Popen(['pkill', '-f', 'entry_ml_worker'])
+        time.sleep(0.5)
+        for i in range(0, ml_worker_count):
+            log.info('entry_ml_worker: %d start' % i)
+            subprocess.Popen(['python', 'entry_ml_worker.py'])
 
-    def trainer(self):
-        worker = config["ml_worker"]
-        worker_count = str(len(worker))
-        train_id = 't%s' % util.hhmmss()
+    def train(self):
+        info = config['pubsub']
+        host = info[0]
+        port = int(info[1])
+        r = redis.StrictRedis(host=host, port=port, db=0)
 
-        for code_name in train_code_names:
-            Pony().log({'key': 'REGISTER_TRAIN',
-                        'code_name': code_name,
-                        'worker_num': worker_count,
-                        'status': 'done',
-                        'train_id': train_id})
+        key = 'TRAIN_NOW'
+        train_id = 't%s' % hhmmss()
+        code_name = train_code_name
 
-            for info in worker:
-                host = info[0]
-                port = info[1]
-                subprocess.Popen(
-                    ['python', 'trainer.py', host, port, worker_count, train_id,
-                     code_name])
+        message = json.dumps({
+            'key': key,
+            'train_id': train_id,
+            'parallel_count': parallel_count,
+            'code_name': code_name})
+        r.publish('admin_command', message)
 
     def pub(self):
-        info = config["pubsub"]
+        info = config['pubsub']
         host = info[0]
         port = int(info[1])
         r = redis.StrictRedis(host=host, port=port, db=0)
@@ -72,16 +75,15 @@ class CmdHandler(SingletonMixin):
         r.publish('ps', message)
 
 
-parser = argparse.ArgumentParser(description="skt parameter server")
+parser = argparse.ArgumentParser(description='skt parameter server')
 parser.add_argument('command', choices=[
     'k', 'kill',
     'a', 'admin',
     'p', 'ps_controller',
-    'm', 'ml_worker',
-    't', 'trainer',
+    'w', 'worker',
+    't', 'train',
     'b', 'bang',
     'pub',
-    'sample_freeze_restore',
 ])
 args = parser.parse_args()
 c = args.command
@@ -92,22 +94,20 @@ elif c == 'a' or c == 'admin':
     CmdHandler().admin()
 elif c == 'p' or c == 'ps_controller':
     CmdHandler().ps_controller()
-elif c == 'm' or c == 'ml_worker':
+elif c == 'w' or c == 'worker':
     # CmdHandler().kill()
     # time.sleep(0.5)
-    CmdHandler().ml_worker()
-elif c == 't' or c == 'trainer':
-    CmdHandler().trainer()
+    CmdHandler().worker()
+elif c == 't' or c == 'train':
+    CmdHandler().train()
 elif c == 'b' or c == 'bang':
     CmdHandler().kill()
     time.sleep(0.5)
     # CmdHandler().admin()
     CmdHandler().ps_controller()
-    CmdHandler().ml_worker()
-    CmdHandler().trainer()
+    CmdHandler().worker()
+    CmdHandler().train()
 elif c == 'pub':
     CmdHandler().pub()
-elif c == 'sample_freeze_restore':
-    sfr.run()
 else:
     log.warn('%s is not valid command' % c)

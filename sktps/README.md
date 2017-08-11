@@ -17,3 +17,5 @@
 ## monitor
 - redsmin이용 (https://app.redsmin.com/)
 - ./sh/run_redsmin.sh
+- rq info --interval 1
+
